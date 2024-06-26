@@ -119,3 +119,20 @@ exports.updatePreferences = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 };
+
+exports.getAllPreferences = async (req, res) => {
+    try {
+        const connection = await dbConnection.createConnection();
+
+        // Retrieve all preferences from the database
+        const [preferences] = await connection.execute('SELECT * FROM Preferences');
+
+        await connection.end();
+
+        // Respond with the preferences
+        return res.status(200).json(preferences);
+    } catch (error) {
+        console.error('Error retrieving preferences:', error);
+        return res.status(500).send('Internal Server Error');
+    }
+};
