@@ -18,16 +18,16 @@ exports.signup = async (req, res) => {
             return res.status(409).send('Username already exists');
         }
 
-        // Insert new user into the database
-        const [result] = await connection.execute('INSERT INTO users (username, password) VALUES (?, ?)', [username, password]);
-
         // Generate a unique code for the user
         const userCode = uuidv4();
+
+        // Insert new user into the database with the userCode
+        await connection.execute('INSERT INTO users (username, password, userCode) VALUES (?, ?, ?)', [username, password, userCode]);
 
         await connection.end();
 
         // Respond with the unique code
-        return res.status(201).json({ message: 'User created successfully, use this user code: ', userCode });
+        return res.status(201).json({ message: 'User created successfully save the userCode for future use.', userCode });
     } catch (error) {
         console.error('Error signing up:', error);
         return res.status(500).send('Internal Server Error');
