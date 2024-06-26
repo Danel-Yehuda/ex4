@@ -1,6 +1,6 @@
 const { dbConnection } = require('../db_connection');
-const destinations = require('../destinations.json');
-const vacationTypes = require('../vacation_types.json');
+const destinations = require('../data/destinations.json');
+const vacationTypes = require('../data/vacation_types.json');
 
 exports.createPreferences = async (req, res) => {
     const { userCode, starting_date, end_date, desired_destination, vacation_type } = req.body;
@@ -30,16 +30,25 @@ exports.createPreferences = async (req, res) => {
         const connection = await dbConnection.createConnection();
 
         // Verify if the userCode exists
-        const [user] = await connection.execute('SELECT * FROM users WHERE userCode = ?', [userCode]);
+        const [user] = await connection.execute('SELECT id FROM users WHERE userCode = ?', [userCode]);
         if (user.length === 0) {
             await connection.end();
             return res.status(404).send('User not found');
         }
 
+        const userId = user[0].id;
+
+        // Check if the user already has preferences
+        const [existingPreferences] = await connection.execute('SELECT * FROM Preferences WHERE user_id = ?', [userId]);
+        if (existingPreferences.length > 0) {
+            await connection.end();
+            return res.status(409).send('User already has preference you can only edit it.');
+        }
+
         // Insert the preferences into the database
         const [result] = await connection.execute(
-            'INSERT INTO Preferences (starting_date, end_date, desired_destination, vacation_type) VALUES (?, ?, ?, ?)',
-            [starting_date, end_date, desired_destination, vacation_type]
+            'INSERT INTO Preferences (starting_date, end_date, desired_destination, vacation_type, user_id) VALUES (?, ?, ?, ?, ?)',
+            [starting_date, end_date, desired_destination, vacation_type, userId]
         );
 
         await connection.end();
