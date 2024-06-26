@@ -11,6 +11,13 @@ exports.signup = async (req, res) => {
     try {
         const connection = await dbConnection.createConnection();
         
+        // Check if there are already 5 users
+        const [users] = await connection.execute('SELECT COUNT(*) as count FROM users');
+        if (users[0].count >= 5) {
+            await connection.end();
+            return res.status(403).send('Cannot create more than 5 users');
+        }
+        
         // Check if the username already exists
         const [existingUser] = await connection.execute('SELECT * FROM users WHERE username = ?', [username]);
         if (existingUser.length > 0) {
