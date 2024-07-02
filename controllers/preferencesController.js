@@ -30,7 +30,7 @@ exports.createPreferences = async (req, res) => {
         const connection = await dbConnection.createConnection();
 
         // Verify if the userCode exists
-        const [user] = await connection.execute('SELECT id FROM users WHERE userCode = ?', [userCode]);
+        const [user] = await connection.execute('SELECT id FROM tbl_21_users WHERE userCode = ?', [userCode]);
         if (user.length === 0) {
             await connection.end();
             return res.status(404).send('User not found');
@@ -39,7 +39,7 @@ exports.createPreferences = async (req, res) => {
         const userId = user[0].id;
 
         // Check if the user already has preferences
-        const [existingPreferences] = await connection.execute('SELECT * FROM Preferences WHERE user_id = ?', [userId]);
+        const [existingPreferences] = await connection.execute('SELECT * FROM tbl_21_preferences WHERE user_id = ?', [userId]);
         if (existingPreferences.length > 0) {
             await connection.end();
             return res.status(409).send('User already has preference you can only edit it.');
@@ -47,7 +47,7 @@ exports.createPreferences = async (req, res) => {
 
         // Insert the preferences into the database
         const [result] = await connection.execute(
-            'INSERT INTO Preferences (starting_date, end_date, desired_destination, vacation_type, user_id) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO tbl_21_preferences (starting_date, end_date, desired_destination, vacation_type, user_id) VALUES (?, ?, ?, ?, ?)',
             [starting_date, end_date, desired_destination, vacation_type, userId]
         );
 
@@ -89,7 +89,7 @@ exports.updatePreferences = async (req, res) => {
         const connection = await dbConnection.createConnection();
 
         // Verify if the userCode exists
-        const [user] = await connection.execute('SELECT id FROM users WHERE userCode = ?', [userCode]);
+        const [user] = await connection.execute('SELECT id FROM tbl_21_users WHERE userCode = ?', [userCode]);
         if (user.length === 0) {
             await connection.end();
             return res.status(404).send('User not found');
@@ -98,7 +98,7 @@ exports.updatePreferences = async (req, res) => {
         const userId = user[0].id;
 
         // Check if the user has existing preferences
-        const [existingPreferences] = await connection.execute('SELECT * FROM Preferences WHERE user_id = ?', [userId]);
+        const [existingPreferences] = await connection.execute('SELECT * FROM tbl_21_preferences WHERE user_id = ?', [userId]);
         if (existingPreferences.length === 0) {
             await connection.end();
             return res.status(404).send('Preferences not found');
@@ -106,7 +106,7 @@ exports.updatePreferences = async (req, res) => {
 
         // Update the preferences in the database
         const [result] = await connection.execute(
-            'UPDATE Preferences SET starting_date = ?, end_date = ?, desired_destination = ?, vacation_type = ? WHERE user_id = ?',
+            'UPDATE tbl_21_preferences SET starting_date = ?, end_date = ?, desired_destination = ?, vacation_type = ? WHERE user_id = ?',
             [starting_date, end_date, desired_destination, vacation_type, userId]
         );
 
@@ -127,8 +127,8 @@ exports.getAllPreferences = async (req, res) => {
         // Retrieve all preferences along with the associated username
         const [preferences] = await connection.execute(`
             SELECT p.*, u.username 
-            FROM Preferences p
-            JOIN users u ON p.user_id = u.id
+            FROM tbl_21_preferences p
+            JOIN tbl_21_users u ON p.user_id = u.id
         `);
 
         await connection.end();
@@ -148,8 +148,8 @@ exports.calculateVacationResults = async (req, res) => {
         // Get all preferences
         const [preferences] = await connection.execute(`
             SELECT p.*, u.username 
-            FROM Preferences p
-            JOIN users u ON p.user_id = u.id
+            FROM tbl_21_preferences p
+            JOIN tbl_21_users u ON p.user_id = u.id
         `);
 
         await connection.end();
